@@ -4,9 +4,9 @@
 
 # youtube-transcript
 
-**Paste a YouTube link. Get the words.**
+**Paste a link. Get the words.**
 
-A free agent skill for public captions. No API key. No browser. No credit meter.
+Two agent skills. YouTube captions need no account. Spotify podcast transcripts log in through a browser window when the saved session is missing.
 
 [![MIT](https://img.shields.io/badge/license-MIT-111111?style=for-the-badge)](LICENSE)
 [![API key](https://img.shields.io/badge/API%20key-none-111111?style=for-the-badge)](https://github.com/jdepoix/youtube-transcript-api)
@@ -32,7 +32,7 @@ and that's cool
 That sample is the first video ever uploaded to YouTube. The skill fetched it from the public captions, on a laptop, with the command in this repo.
 
 > [!TIP]
-> Agents installing this skill: follow [Agent install](#agent-install) from top to bottom. Finish each verify command before the next step. The skill name is `youtube-transcript`. The slash command is `/youtube-transcript`.
+> Agents installing a skill: follow [Agent install](#agent-install) from top to bottom. Finish each verify command before the next step. YouTube is `/youtube-transcript`. Spotify podcasts are `/spotify-transcript`.
 
 ## Install
 
@@ -102,7 +102,29 @@ Several URLs can go in one command. Text output for more than one video starts e
 | Gemini CLI | ask for the transcript |
 | Cline, Warp, Zed | the skill in `~/.agents/skills` |
 
-The procedure the agent follows is [`skills/youtube-transcript/SKILL.md`](skills/youtube-transcript/SKILL.md).
+The procedure the agent follows for a video is [`skills/youtube-transcript/SKILL.md`](skills/youtube-transcript/SKILL.md). For a Spotify episode it is [`skills/spotify-transcript/SKILL.md`](skills/spotify-transcript/SKILL.md).
+
+## Spotify podcasts
+
+Episode transcripts need one Spotify login. The fetch script opens Spotify in a browser when the saved session is missing, expired, or rejected, waits until you log in, and then prints the transcript. Do not click Log out in that window. A later fetch reuses the session and stays headless.
+
+```bash
+uv tool install "spotifyscraper[browser,cli]"
+~/.local/share/uv/tools/spotifyscraper/bin/playwright install chromium
+npx -y skills add ringalls2020/youtube-transcript --skill spotify-transcript -g -y
+```
+
+Then ask:
+
+```text
+Get the transcript for https://open.spotify.com/episode/07gKzPFkbvGF0cHoeG7ARS
+```
+
+Or run `/spotify-transcript`.
+
+The script accepts an episode URL, a `spotify:episode:` URI, or a 22-character episode id. `--format json` adds `start_ms` timestamps. A show link is not an episode. An episode with no transcript returns `NotFoundError`.
+
+The session cookie stays in SpotifyScraper's owner-only config file. The skill does not ask for it and does not print it. Login details are in [`skills/spotify-transcript/references/auth.md`](skills/spotify-transcript/references/auth.md).
 
 ## What it will and will not do
 
@@ -145,6 +167,17 @@ python3 -m pip install --user youtube-transcript-api
 
 The required command name is `youtube_transcript_api`.
 
+For Spotify transcripts, install the browser extra and Chromium. The required command name is `spotifyscraper`.
+
+```bash
+uv tool install "spotifyscraper[browser,cli]"
+~/.local/share/uv/tools/spotifyscraper/bin/playwright install chromium
+command -v spotifyscraper
+spotifyscraper session
+```
+
+Pass: `command -v` prints a path. `spotifyscraper session` prints a cookie-free session status. A missing session is a pass. The fetch script opens the browser later.
+
 ### 2. Install the skill
 
 Use one method. Source for both:
@@ -160,6 +193,7 @@ Installs the skill for every agent the CLI detects on this machine.
 
 ```bash
 npx -y skills add ringalls2020/youtube-transcript --skill youtube-transcript -g -y
+npx -y skills add ringalls2020/youtube-transcript --skill spotify-transcript -g -y
 ```
 
 One agent:
@@ -193,6 +227,12 @@ ln -sfn "$REPO/skills/youtube-transcript" "$HOME/.cursor/skills/youtube-transcri
 ln -sfn "$REPO/skills/youtube-transcript" "$HOME/.codex/skills/youtube-transcript"
 ln -sfn "$REPO/skills/youtube-transcript" "$HOME/.gemini/skills/youtube-transcript"
 ln -sfn "$REPO/skills/youtube-transcript" "$HOME/.agents/skills/youtube-transcript"
+ln -sfn "$REPO/skills/spotify-transcript" "$HOME/.grok/skills/spotify-transcript"
+ln -sfn "$REPO/skills/spotify-transcript" "$HOME/.claude/skills/spotify-transcript"
+ln -sfn "$REPO/skills/spotify-transcript" "$HOME/.cursor/skills/spotify-transcript"
+ln -sfn "$REPO/skills/spotify-transcript" "$HOME/.codex/skills/spotify-transcript"
+ln -sfn "$REPO/skills/spotify-transcript" "$HOME/.gemini/skills/spotify-transcript"
+ln -sfn "$REPO/skills/spotify-transcript" "$HOME/.agents/skills/spotify-transcript"
 ```
 
 | Agent | Skill directory |
@@ -204,7 +244,7 @@ ln -sfn "$REPO/skills/youtube-transcript" "$HOME/.agents/skills/youtube-transcri
 | Gemini CLI | `~/.gemini/skills/youtube-transcript` |
 | Cline, Warp, Zed, and other consumers of `~/.agents/skills` | `~/.agents/skills/youtube-transcript` |
 
-Other agents and their global skill paths are listed by `npx skills add --help` under supported agents. The folder to link is `skills/youtube-transcript`. The `name` in `SKILL.md` is `youtube-transcript` and matches that folder name.
+Other agents and their global skill paths are listed by `npx skills add --help` under supported agents. Link `skills/youtube-transcript` and `skills/spotify-transcript`. Each folder name matches the `name` in its `SKILL.md`.
 
 Pass: `SKILL.md` exists at the destination.
 
@@ -236,9 +276,9 @@ Start a new agent session so the skill list reloads. Ask:
 Get the transcript for https://www.youtube.com/watch?v=jNQXAC9IVRw
 ```
 
-Or run `/youtube-transcript`.
+Or run `/youtube-transcript`. For a podcast, ask for the transcript of an `open.spotify.com/episode/` link, or run `/spotify-transcript`.
 
-Pass: the agent runs `skills/youtube-transcript/scripts/fetch_transcript.py` and returns the caption text from stdout.
+Pass: the agent runs the matching `scripts/fetch_transcript.py` and returns the caption text from stdout. A Spotify run with no saved session opens a browser and waits for login before it prints the transcript.
 
 ## Repository layout
 
@@ -246,7 +286,11 @@ Pass: the agent runs `skills/youtube-transcript/scripts/fetch_transcript.py` and
 skills/youtube-transcript/SKILL.md
 skills/youtube-transcript/scripts/fetch_transcript.py
 skills/youtube-transcript/references/cli.md
+skills/spotify-transcript/SKILL.md
+skills/spotify-transcript/scripts/fetch_transcript.py
+skills/spotify-transcript/references/auth.md
 tests/test_fetch_transcript.py
+tests/test_spotify_transcript.py
 ```
 
 ## Tests
@@ -263,7 +307,9 @@ Pass: pytest exits 0.
 
 ```bash
 npx -y skills remove youtube-transcript -g -y
+npx -y skills remove spotify-transcript -g -y
 uv tool uninstall youtube-transcript-api
+uv tool uninstall spotifyscraper
 ```
 
 When the skill was linked by hand, remove those symlinks:
@@ -275,6 +321,12 @@ rm "$HOME/.cursor/skills/youtube-transcript"
 rm "$HOME/.codex/skills/youtube-transcript"
 rm "$HOME/.gemini/skills/youtube-transcript"
 rm "$HOME/.agents/skills/youtube-transcript"
+rm "$HOME/.grok/skills/spotify-transcript"
+rm "$HOME/.claude/skills/spotify-transcript"
+rm "$HOME/.cursor/skills/spotify-transcript"
+rm "$HOME/.codex/skills/spotify-transcript"
+rm "$HOME/.gemini/skills/spotify-transcript"
+rm "$HOME/.agents/skills/spotify-transcript"
 ```
 
 Remove a path only when it points at this skill.
@@ -283,4 +335,4 @@ Remove a path only when it points at this skill.
 
 MIT. See [LICENSE](LICENSE).
 
-Caption fetching is [youtube-transcript-api](https://github.com/jdepoix/youtube-transcript-api) by jdepoix, also MIT. This repo is the agent skill and the URL-friendly script around that library.
+YouTube captions come from [youtube-transcript-api](https://github.com/jdepoix/youtube-transcript-api) by jdepoix, also MIT. Spotify transcripts come from [SpotifyScraper](https://github.com/AliAkhtari78/SpotifyScraper) by Ali Akhtari, also MIT. This repo is the agent skills and the URL-friendly scripts around those libraries.
