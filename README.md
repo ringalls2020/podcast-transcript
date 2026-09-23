@@ -1,20 +1,20 @@
 <div align="center">
 
-<img src="assets/hero.png" alt="youtube-transcript. Paste a link. Get the words." width="100%">
+<img src="assets/hero.png" alt="podcast-transcript. Paste a link. Get the words." width="100%">
 
-# youtube-transcript
+# podcast-transcript
 
 **Paste a link. Get the words.**
 
-Two agent skills. YouTube captions need no account. Spotify podcast transcripts log in through a browser window when the saved session is missing.
+An agent-skill umbrella for fetching transcripts from podcast and video platforms. YouTube captions need no account. Spotify podcast transcripts log in through a browser window when the saved session is missing. More providers can land under the same repo later.
 
 [![MIT](https://img.shields.io/badge/license-MIT-111111?style=for-the-badge)](LICENSE)
 [![API key](https://img.shields.io/badge/API%20key-none-111111?style=for-the-badge)](https://github.com/jdepoix/youtube-transcript-api)
-[![command](https://img.shields.io/badge/command-%2Fyoutube--transcript-111111?style=for-the-badge)](skills/youtube-transcript/SKILL.md)
+[![skills](https://img.shields.io/badge/skills-YouTube%20%2B%20Spotify-111111?style=for-the-badge)](skills/)
 
 </div>
 
-Hand an agent a video. It comes back with the transcript.
+Hand an agent a link. It comes back with the transcript — YouTube videos today, Spotify podcast episodes today, and room for other podcast providers under the same `podcast-transcript` umbrella.
 
 ```text
 Get the transcript for https://www.youtube.com/watch?v=jNQXAC9IVRw
@@ -29,10 +29,10 @@ really really long trunks
 and that's cool
 ```
 
-That sample is the first video ever uploaded to YouTube. The skill fetched it from the public captions, on a laptop, with the command in this repo.
+That sample is the first video ever uploaded to YouTube. The YouTube skill fetched it from the public captions, on a laptop, with the command in this repo.
 
 > [!TIP]
-> Agents installing a skill: follow [Agent install](#agent-install) from top to bottom. Finish each verify command before the next step. YouTube is `/youtube-transcript`. Spotify podcasts are `/spotify-transcript`.
+> Agents installing a skill: follow [Agent install](#agent-install) from top to bottom. Finish each verify command before the next step. Provider skills in this umbrella: YouTube is `/youtube-transcript`. Spotify podcasts are `/spotify-transcript`.
 
 ## Install
 
@@ -40,13 +40,13 @@ Two commands. Then start a new agent session.
 
 ```bash
 uv tool install youtube-transcript-api
-npx -y skills add ringalls2020/youtube-transcript --skill youtube-transcript -g -y
+npx -y skills add ringalls2020/podcast-transcript --skill youtube-transcript -g -y
 ```
 
 The same install from the full URL:
 
 ```bash
-npx -y skills add https://github.com/ringalls2020/youtube-transcript --skill youtube-transcript -g -y
+npx -y skills add https://github.com/ringalls2020/podcast-transcript --skill youtube-transcript -g -y
 ```
 
 `uv` missing? Use `pipx install youtube-transcript-api`. The command that must exist afterwards is `youtube_transcript_api`.
@@ -61,8 +61,9 @@ npx -y skills add https://github.com/ringalls2020/youtube-transcript --skill you
 | "What languages does this video have?" | A table of caption tracks |
 | "Translate the captions to Spanish" | YouTube's own caption translation |
 | `/youtube-transcript <url>` | The same fetch, from the slash command |
+| `/spotify-transcript <url>` | A Spotify episode transcript |
 
-Paste a `youtube.com/watch` link, a `youtu.be` link, a Shorts link, or the 11-character video id. The agent extracts the id.
+Paste a `youtube.com/watch` link, a `youtu.be` link, a Shorts link, or the 11-character video id. The agent extracts the id. For Spotify, paste an `open.spotify.com/episode/` link, a `spotify:episode:` URI, or a 22-character episode id.
 
 ## What a fetch looks like
 
@@ -91,16 +92,16 @@ Several URLs can go in one command. Text output for more than one video starts e
 
 ## Where it runs
 
-`npx skills` installs it for the agents it finds on the machine. These are the ones this repo is built against:
+`npx skills` installs provider skills for the agents it finds on the machine. These are the ones this repo is built against:
 
 | Agent | Invoke it |
 | --- | --- |
-| Grok Build | `/youtube-transcript` |
-| Claude Code | `/youtube-transcript` |
+| Grok Build | `/youtube-transcript` or `/spotify-transcript` |
+| Claude Code | `/youtube-transcript` or `/spotify-transcript` |
 | Cursor | ask for the transcript |
 | Codex | ask for the transcript |
 | Gemini CLI | ask for the transcript |
-| Cline, Warp, Zed | the skill in `~/.agents/skills` |
+| Cline, Warp, Zed | the skills in `~/.agents/skills` |
 
 The procedure the agent follows for a video is [`skills/youtube-transcript/SKILL.md`](skills/youtube-transcript/SKILL.md). For a Spotify episode it is [`skills/spotify-transcript/SKILL.md`](skills/spotify-transcript/SKILL.md).
 
@@ -111,7 +112,7 @@ Episode transcripts need one Spotify login. The fetch script opens Spotify in a 
 ```bash
 uv tool install "spotifyscraper[browser,cli]"
 ~/.local/share/uv/tools/spotifyscraper/bin/playwright install chromium
-npx -y skills add ringalls2020/youtube-transcript --skill spotify-transcript -g -y
+npx -y skills add ringalls2020/podcast-transcript --skill spotify-transcript -g -y
 ```
 
 Then ask:
@@ -131,9 +132,10 @@ The session cookie stays in SpotifyScraper's owner-only config file. The skill d
 | It will | It will not |
 | --- | --- |
 | Read manual and auto-generated captions | Download the video or the audio |
-| Accept a URL or a video id | Search YouTube or list a channel |
-| Run locally, with no account | Open private, members-only, or age-restricted videos |
+| Accept a URL or a video / episode id | Search YouTube or list a channel |
+| Run locally, with no API key | Open private, members-only, or age-restricted videos |
 | Translate a caption track YouTube already offers | Invent words that were not in the captions |
+| Fetch Spotify episode transcripts after one login | Print or ask for the Spotify session cookie |
 
 YouTube sometimes answers `IpBlocked` or `RequestBlocked`, mostly from cloud networks. The fetch script and the library still ran. Proxy setup is in [`skills/youtube-transcript/references/cli.md`](skills/youtube-transcript/references/cli.md).
 
@@ -180,11 +182,11 @@ Pass: `command -v` prints a path. `spotifyscraper session` prints a cookie-free 
 
 ### 2. Install the skill
 
-Use one method. Source for both:
+Use one method. Source for both (umbrella repo):
 
 ```text
-ringalls2020/youtube-transcript
-https://github.com/ringalls2020/youtube-transcript
+ringalls2020/podcast-transcript
+https://github.com/ringalls2020/podcast-transcript
 ```
 
 #### Method A — skills CLI
@@ -192,24 +194,24 @@ https://github.com/ringalls2020/youtube-transcript
 Installs the skill for every agent the CLI detects on this machine.
 
 ```bash
-npx -y skills add ringalls2020/youtube-transcript --skill youtube-transcript -g -y
-npx -y skills add ringalls2020/youtube-transcript --skill spotify-transcript -g -y
+npx -y skills add ringalls2020/podcast-transcript --skill youtube-transcript -g -y
+npx -y skills add ringalls2020/podcast-transcript --skill spotify-transcript -g -y
 ```
 
 One agent:
 
 ```bash
-npx -y skills add ringalls2020/youtube-transcript --skill youtube-transcript -g -a grok -y
-npx -y skills add ringalls2020/youtube-transcript --skill youtube-transcript -g -a claude-code -y
-npx -y skills add ringalls2020/youtube-transcript --skill youtube-transcript -g -a cursor -y
-npx -y skills add ringalls2020/youtube-transcript --skill youtube-transcript -g -a codex -y
-npx -y skills add ringalls2020/youtube-transcript --skill youtube-transcript -g -a gemini-cli -y
+npx -y skills add ringalls2020/podcast-transcript --skill youtube-transcript -g -a grok -y
+npx -y skills add ringalls2020/podcast-transcript --skill youtube-transcript -g -a claude-code -y
+npx -y skills add ringalls2020/podcast-transcript --skill youtube-transcript -g -a cursor -y
+npx -y skills add ringalls2020/podcast-transcript --skill youtube-transcript -g -a codex -y
+npx -y skills add ringalls2020/podcast-transcript --skill youtube-transcript -g -a gemini-cli -y
 ```
 
 Every agent the CLI knows about, including ones that are not installed:
 
 ```bash
-npx -y skills add ringalls2020/youtube-transcript --skill youtube-transcript -g -a '*' -y
+npx -y skills add ringalls2020/podcast-transcript --skill youtube-transcript -g -a '*' -y
 ```
 
 Pass: the command exits 0.
@@ -219,8 +221,8 @@ Pass: the command exits 0.
 Use this when `npx` is unavailable. `<repo>` is the absolute path of a local clone. Create a parent directory only for an agent that is installed.
 
 ```bash
-git clone https://github.com/ringalls2020/youtube-transcript.git
-REPO="$PWD/youtube-transcript"
+git clone https://github.com/ringalls2020/podcast-transcript.git
+REPO="$PWD/podcast-transcript"
 ln -sfn "$REPO/skills/youtube-transcript" "$HOME/.grok/skills/youtube-transcript"
 ln -sfn "$REPO/skills/youtube-transcript" "$HOME/.claude/skills/youtube-transcript"
 ln -sfn "$REPO/skills/youtube-transcript" "$HOME/.cursor/skills/youtube-transcript"
@@ -291,6 +293,7 @@ skills/spotify-transcript/scripts/fetch_transcript.py
 skills/spotify-transcript/references/auth.md
 tests/test_fetch_transcript.py
 tests/test_spotify_transcript.py
+assets/hero.png
 ```
 
 ## Tests
@@ -335,4 +338,4 @@ Remove a path only when it points at this skill.
 
 MIT. See [LICENSE](LICENSE).
 
-YouTube captions come from [youtube-transcript-api](https://github.com/jdepoix/youtube-transcript-api) by jdepoix, also MIT. Spotify transcripts come from [SpotifyScraper](https://github.com/AliAkhtari78/SpotifyScraper) by Ali Akhtari, also MIT. This repo is the agent skills and the URL-friendly scripts around those libraries.
+YouTube captions come from [youtube-transcript-api](https://github.com/jdepoix/youtube-transcript-api) by jdepoix, also MIT. Spotify transcripts come from [SpotifyScraper](https://github.com/AliAkhtari78/SpotifyScraper) by Ali Akhtari, also MIT. This repo is the `podcast-transcript` agent-skill umbrella and the URL-friendly scripts around those libraries.
