@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/hero.jpg" alt="A towering film frame in the dark, with light pouring out of it like a transcript" width="100%">
+
 # youtube-transcript
 
 **Paste a YouTube link. Get the words.**
